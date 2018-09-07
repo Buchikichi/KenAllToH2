@@ -18,6 +18,12 @@ public class KenAllRecord {
 	private String reason;
 
 	/**
+	 * @return X0401
+	 */
+	public String getX0401() {
+		return this.x0402.substring(0, 2);
+	}
+	/**
 	 * @return the x0402
 	 */
 	public String getX0402() {

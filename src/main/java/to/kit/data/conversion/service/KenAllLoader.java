@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.zip.ZipInputStream;
 
@@ -15,7 +16,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
-import to.kit.data.conversion.dto.KenAllRecord;
+import to.kit.data.conversion.entity.KenAll;
 import to.kit.data.conversion.util.NameUtils;
 
 @Service
@@ -24,7 +25,7 @@ public class KenAllLoader {
 	private String charsetName;
 	private UnaryOperator<String> op = NameUtils.toHiragana;
 
-	private void load(List<KenAllRecord> list, byte[] bytes) throws IOException {
+	private void load(List<KenAll> list, byte[] bytes) throws IOException {
 		try (var in = new ByteArrayInputStream(bytes);
 				var isr = new InputStreamReader(in, this.charsetName);
 				var reader = new BufferedReader(isr)) {
@@ -34,25 +35,29 @@ public class KenAllLoader {
 				if (line == null) {
 					break;
 				}
-				var rec = new KenAllRecord();
+				var rec = new KenAll();
+				var uuid = UUID.randomUUID().toString().replace("-", "");
 				var elements = line.replaceAll("\"", "").split(",");
-				var prefectureKana = this.op.apply(elements[3]);
+				var x0402 = elements[0];
+				var prefKana = this.op.apply(elements[3]);
 				var municipalityKana = this.op.apply(elements[4]);
-				var areaKana = this.op.apply(elements[5]);
+				var cityKana = this.op.apply(elements[5]);
 
-				rec.setX0402(elements[0]);
-				rec.setOldZip(elements[1]);
-				rec.setNewZip(elements[2]);
-				rec.setPrefectureKana(prefectureKana);
-				rec.setMunicipalityKana(municipalityKana);
-				rec.setAreaKana(areaKana);
-				rec.setPrefecture(elements[6]);
-				rec.setMunicipality(elements[7]);
-				rec.setArea(elements[8]);
-				rec.setDupAreaFlag(elements[9]);
-				rec.setBanFlag(elements[10]);
-				rec.setChomeFlag(elements[11]);
-				rec.setDupZipFlag(elements[12]);
+				rec.setId(uuid);
+				rec.setX0401(x0402.substring(0, 2));
+				rec.setX0402(x0402);
+				rec.setZip5(elements[1]);
+				rec.setZip7(elements[2]);
+				rec.setPrefKana(prefKana);
+				rec.setMunicKana(municipalityKana);
+				rec.setCityKana(cityKana);
+				rec.setPref(elements[6]);
+				rec.setMunic(elements[7]);
+				rec.setCity(elements[8]);
+				rec.setSomeCity("1".equals(elements[9]));
+				rec.setSomeNumber("1".equals(elements[10]));
+				rec.setSomeChome("1".equals(elements[11]));
+				rec.setSomeZip("1".equals(elements[12]));
 				rec.setUpdate(elements[13]);
 				rec.setReason(elements[14]);
 				list.add(rec);
@@ -60,8 +65,8 @@ public class KenAllLoader {
 		}
 	}
 
-	public List<KenAllRecord> load(File file) throws IOException {
-		var list = new ArrayList<KenAllRecord>();
+	public List<KenAll> load(File file) throws IOException {
+		var list = new ArrayList<KenAll>();
 
 		try (var in = new FileInputStream(file); var zip = new ZipInputStream(in)) {
 			for (;;) {

@@ -1,0 +1,15 @@
+# -Dspring.profiles.active=dev
+spring:
+  main:
+    banner-mode: "off"
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:file:./personalInfo
+    username:
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+#
+loader:
+  charsetName: MS932
